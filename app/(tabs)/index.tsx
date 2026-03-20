@@ -1,98 +1,174 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import React, { useState } from 'react';
+import { StyleSheet, View, Text, FlatList, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Feather } from '@expo/vector-icons';
+import { Theme } from '@/constants/theme';
+import { useTaskStore } from '@/store/useTaskStore';
+import { TaskItem } from '@/components/TaskItem';
+import { ProgressRing } from '@/components/ProgressRing';
+import { ReflectionPrompt } from '@/components/ReflectionPrompt';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+export default function TasksScreen() {
+  const { colors } = useAppTheme();
+  const styles = useStyles(colors);
 
-export default function HomeScreen() {
+  const tasks = useTaskStore(state => state.tasks);
+  const addTask = useTaskStore(state => state.addTask);
+  const themeOverride = useTaskStore(state => state.themeOverride);
+  const setThemeOverride = useTaskStore(state => state.setThemeOverride);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+
+  const todayTasks = tasks.filter(t => {
+    const today = new Date().toDateString();
+    return new Date(t.createdAt).toDateString() === today;
+  });
+
+  const completedCount = todayTasks.filter(t => t.completed).length;
+  const progress = todayTasks.length > 0 ? completedCount / todayTasks.length : 0;
+
+  const toggleTheme = () => {
+    const themes: Array<'light' | 'dark' | 'system'> = ['system', 'dark', 'light'];
+    const nextTheme = themes[(themes.indexOf(themeOverride) + 1) % themes.length];
+    setThemeOverride(nextTheme);
+  };
+
+  const handleAddTask = () => {
+    if (newTaskTitle.trim()) {
+      addTask({ title: newTaskTitle.trim(), priority: 'medium' });
+      setNewTaskTitle('');
+    }
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <ReflectionPrompt />
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.dateText}>
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+          </Text>
+          <Text style={styles.title}>Your Focus</Text>
+        </View>
+        <View style={styles.headerRight}>
+          <TouchableOpacity style={styles.themeToggle} onPress={toggleTheme}>
+            <Feather 
+              name={themeOverride === 'dark' ? 'moon' : themeOverride === 'light' ? 'sun' : 'smartphone'} 
+              size={24} 
+              color={colors.textMuted} 
             />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+          </TouchableOpacity>
+          <ProgressRing progress={progress} size={64} strokeWidth={6} />
+        </View>
+      </View>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      <FlatList
+        data={todayTasks}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => <TaskItem task={item} />}
+        contentContainerStyle={styles.listContent}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No tasks for today. Add one below!</Text>
+          </View>
+        }
+      />
+
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="What needs to be done?"
+            value={newTaskTitle}
+            onChangeText={setNewTaskTitle}
+            onSubmitEditing={handleAddTask}
+            placeholderTextColor={colors.textMuted}
+          />
+          <TouchableOpacity style={styles.addButton} onPress={handleAddTask}>
+            <Feather name="plus" size={24} color={colors.surface} />
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  titleContainer: {
+const useStyles = (colors: any) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: Theme.spacing.lg,
+    paddingTop: Theme.spacing.xl,
+    paddingBottom: Theme.spacing.lg,
+  },
+  headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  themeToggle: {
+    padding: Theme.spacing.sm,
+    marginRight: Theme.spacing.md,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  dateText: {
+    fontFamily: Theme.typography.fontFamily.medium,
+    fontSize: Theme.typography.sizes.sm,
+    color: colors.textMuted,
+    marginBottom: 4,
   },
+  title: {
+    fontFamily: Theme.typography.fontFamily.bold,
+    fontSize: Theme.typography.sizes.xxl,
+    color: colors.text,
+  },
+  listContent: {
+    paddingHorizontal: Theme.spacing.lg,
+    paddingBottom: 100,
+  },
+  emptyContainer: {
+    paddingVertical: Theme.spacing.xxl,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontFamily: Theme.typography.fontFamily.medium,
+    fontSize: Theme.typography.sizes.md,
+    color: colors.textMuted,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    padding: Theme.spacing.md,
+    paddingBottom: Platform.OS === 'ios' ? Theme.spacing.xl : Theme.spacing.md,
+    backgroundColor: colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    alignItems: 'center',
+  },
+  input: {
+    flex: 1,
+    height: 48,
+    backgroundColor: colors.background,
+    borderRadius: Theme.radius.lg,
+    paddingHorizontal: Theme.spacing.md,
+    fontFamily: Theme.typography.fontFamily.medium,
+    fontSize: Theme.typography.sizes.md,
+    color: colors.text,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  addButton: {
+    width: 48,
+    height: 48,
+    backgroundColor: colors.primary,
+    borderRadius: Theme.radius.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: Theme.spacing.sm,
+  }
 });
