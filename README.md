@@ -39,4 +39,6 @@ Aura is a calm, visually appealing, and highly aesthetic personal productivity t
 - **Design System**: Built around Inter fonts (`@expo-google-fonts/inter`), soft muted color palettes (slate, pastel blues), and minimalistic borders.
 - **Micro-Animations**: Uses `react-native-reanimated` (`Animated.createAnimatedComponent`) for buttery-smooth SVG completion rings, checkbox toggles, and UI interactions.
 
+added one mode for sharing the badges on the other social platfrom like linkedin ,twitter etc
+
 
