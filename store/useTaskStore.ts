@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { scheduleTaskReminder, cancelTaskReminder } from '@/lib/notifications';
+import { scheduleTaskReminder, cancelTaskReminder, scheduleTargetDeadlineReminder, cancelTargetReminder } from '@/lib/notifications';
 
 export interface Task {
   id: string;
@@ -12,8 +12,19 @@ export interface Task {
   priority: 'low' | 'medium' | 'high';
 }
 
+export interface Target {
+  id: string;
+  title: string;
+  notes?: string;
+  deadline: string; // YYYY-MM-DD
+  color: string;
+  completed: boolean;
+  createdAt: number;
+}
+
 interface AppState {
   tasks: Task[];
+  targets: Target[];
   currentStreak: number;
   lastCompletedDate: string | null; // YYYY-MM-DD format
   badges: string[]; // unlocked badges
@@ -23,6 +34,11 @@ interface AppState {
   toggleTask: (id: string) => void;
   deleteTask: (id: string) => void;
   updateTaskNotes: (id: string, notes: string) => void;
+
+  addTarget: (target: Omit<Target, 'id' | 'createdAt' | 'completed'>) => void;
+  toggleTarget: (id: string) => void;
+  deleteTarget: (id: string) => void;
+
   setThemeOverride: (theme: 'light' | 'dark' | 'system') => void;
 
   evaluateStreak: () => void;
@@ -32,6 +48,7 @@ export const useTaskStore = create<AppState>()(
   persist(
     (set, get) => ({
       tasks: [],
+      targets: [],
       currentStreak: 0,
       lastCompletedDate: null,
       badges: [],
@@ -73,6 +90,37 @@ export const useTaskStore = create<AppState>()(
           t.id === id ? { ...t, notes } : t
         )
       })),
+
+      addTarget: (target) => set((state) => {
+        const id = Math.random().toString(36).substring(7);
+        scheduleTargetDeadlineReminder(id, target.title, target.deadline);
+        return {
+          targets: [...state.targets, {
+            ...target,
+            id,
+            createdAt: Date.now(),
+            completed: false
+          }]
+        };
+      }),
+
+      toggleTarget: (id) => set((state) => {
+        const targets = state.targets.map(t => {
+          if (t.id === id) {
+            const nextState = !t.completed;
+            if (nextState) cancelTargetReminder(id);
+            else scheduleTargetDeadlineReminder(id, t.title, t.deadline);
+            return { ...t, completed: nextState };
+          }
+          return t;
+        });
+        return { ...state, targets };
+      }),
+
+      deleteTarget: (id) => set((state) => {
+        cancelTargetReminder(id);
+        return { targets: state.targets.filter(t => t.id !== id) };
+      }),
 
       evaluateStreak: () => {
         // Evaluate daily streak logic

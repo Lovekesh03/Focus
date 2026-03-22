@@ -46,6 +46,43 @@ export async function scheduleTaskReminder(taskId: string, title: string) {
   });
 }
 
+export async function scheduleTargetDeadlineReminder(targetId: string, title: string, deadline: string) {
+  const hasPermission = await requestPermissions();
+  if (!hasPermission) return;
+
+  await cancelTargetReminder(targetId);
+
+  // Parse deadline to show "days left" in the body
+  const deadlineDate = new Date(deadline);
+  const now = new Date();
+  const diffTime = deadlineDate.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) return; // Deadline already passed
+
+  await Notifications.scheduleNotificationAsync({
+    identifier: `target-${targetId}`,
+    content: {
+      title: "Target Reminder",
+      body: `Don't forget: "${title}" is coming up!`,
+      data: { targetId, deadline },
+    },
+    trigger: {
+      type: 'daily',
+      hour: 9,
+      minute: 0,
+    } as Notifications.DailyTriggerInput,
+  });
+}
+
+export async function cancelTargetReminder(targetId: string) {
+  try {
+    await Notifications.cancelScheduledNotificationAsync(`target-${targetId}`);
+  } catch {
+    // Silently ignore
+  }
+}
+
 export async function cancelTaskReminder(taskId: string) {
   try {
     // Cancel directly — no permission check needed to cancel a notification
