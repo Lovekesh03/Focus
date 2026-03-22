@@ -12,6 +12,11 @@ export interface Task {
   priority: 'low' | 'medium' | 'high';
 }
 
+export interface MonthNote {
+  aims: string;
+  achievements: string;
+}
+
 export interface Target {
   id: string;
   title: string;
@@ -29,6 +34,7 @@ interface AppState {
   lastCompletedDate: string | null; // YYYY-MM-DD format
   badges: string[]; // unlocked badges
   themeOverride: 'light' | 'dark' | 'system';
+  monthNotes: Record<string, MonthNote>; // Key: YYYY-MM
 
   addTask: (task: Omit<Task, 'id' | 'createdAt' | 'completed'>) => void;
   toggleTask: (id: string) => void;
@@ -40,6 +46,8 @@ interface AppState {
   deleteTarget: (id: string) => void;
 
   setThemeOverride: (theme: 'light' | 'dark' | 'system') => void;
+
+  updateMonthNote: (yearMonth: string, note: Partial<MonthNote>) => void;
 
   evaluateStreak: () => void;
 }
@@ -53,6 +61,7 @@ export const useTaskStore = create<AppState>()(
       lastCompletedDate: null,
       badges: [],
       themeOverride: 'system',
+      monthNotes: {},
 
       addTask: (task) => set((state) => {
         const id = Math.random().toString(36).substring(7);
@@ -125,6 +134,16 @@ export const useTaskStore = create<AppState>()(
       evaluateStreak: () => {
         // Evaluate daily streak logic
       },
+
+      updateMonthNote: (yearMonth, note) => set((state) => ({
+        monthNotes: {
+          ...state.monthNotes,
+          [yearMonth]: {
+            ... (state.monthNotes[yearMonth] || { aims: '', achievements: '' }),
+            ...note
+          }
+        }
+      })),
 
       setThemeOverride: (themeOverride) => set({ themeOverride })
     }),

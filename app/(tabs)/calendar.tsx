@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/theme';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { useTaskStore, Target } from '@/store/useTaskStore';
+import { useTaskStore, Target, MonthNote } from '@/store/useTaskStore';
 import { TargetCalendar } from '@/components/TargetCalendar';
 
 export default function CalendarScreen() {
@@ -15,10 +15,16 @@ export default function CalendarScreen() {
   const addTarget = useTaskStore(state => state.addTarget);
   const toggleTarget = useTaskStore(state => state.toggleTarget);
   const deleteTarget = useTaskStore(state => state.deleteTarget);
+  const monthNotes = useTaskStore(state => state.monthNotes);
+  const updateMonthNote = useTaskStore(state => state.updateMonthNote);
 
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
   const [modalVisible, setModalVisible] = useState(false);
   const [newTarget, setNewTarget] = useState({ title: '', notes: '', color: Theme.colors.primary });
+
+  const yearMonth = `${currentMonthDate.getFullYear()}-${String(currentMonthDate.getMonth() + 1).padStart(2, '0')}`;
+  const currentMonthNote = monthNotes[yearMonth] || { aims: '', achievements: '' };
 
   const filteredTargets = targets.filter(t => t.deadline === selectedDate);
   const upcomingTargets = targets
@@ -59,7 +65,39 @@ export default function CalendarScreen() {
             targets={targets} 
             selectedDate={selectedDate} 
             onSelectDate={setSelectedDate} 
+            onMonthChange={setCurrentMonthDate}
           />
+        </View>
+
+        <View style={styles.monthNotesCard}>
+          <View style={styles.monthNotesHeader}>
+            <Feather name="target" size={20} color={colors.primary} />
+            <Text style={styles.monthNotesTitle}>Monthly Focus: {currentMonthDate.toLocaleDateString('default', { month: 'long' })}</Text>
+          </View>
+          
+          <View style={styles.noteSection}>
+             <Text style={styles.noteLabel}>Monthly Aims</Text>
+             <TextInput
+               style={styles.noteInput}
+               placeholder="What do you want to achieve this month?"
+               placeholderTextColor={colors.textMuted}
+               multiline
+               value={currentMonthNote.aims}
+               onChangeText={(text) => updateMonthNote(yearMonth, { aims: text })}
+             />
+          </View>
+
+          <View style={[styles.noteSection, { borderTopWidth: 1, borderTopColor: colors.border, paddingTop: Theme.spacing.md }]}>
+             <Text style={styles.noteLabel}>Achievements / Done</Text>
+             <TextInput
+               style={styles.noteInput}
+               placeholder="What have you accomplished?"
+               placeholderTextColor={colors.textMuted}
+               multiline
+               value={currentMonthNote.achievements}
+               onChangeText={(text) => updateMonthNote(yearMonth, { achievements: text })}
+             />
+          </View>
         </View>
 
         <View style={styles.sectionHeader}>
@@ -194,6 +232,42 @@ const useStyles = (colors: any) => StyleSheet.create({
     marginBottom: Theme.spacing.lg,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  monthNotesCard: {
+    backgroundColor: colors.surface,
+    borderRadius: Theme.radius.lg,
+    padding: Theme.spacing.lg,
+    marginBottom: Theme.spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  monthNotesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Theme.spacing.md,
+    gap: 8,
+  },
+  monthNotesTitle: {
+    fontFamily: Theme.typography.fontFamily.bold,
+    fontSize: Theme.typography.sizes.md,
+    color: colors.text,
+  },
+  noteSection: {
+    marginBottom: Theme.spacing.md,
+  },
+  noteLabel: {
+    fontFamily: Theme.typography.fontFamily.semiBold,
+    fontSize: Theme.typography.sizes.sm,
+    color: colors.textMuted,
+    marginBottom: 6,
+    textTransform: 'uppercase',
+  },
+  noteInput: {
+    fontFamily: Theme.typography.fontFamily.regular,
+    fontSize: Theme.typography.sizes.md,
+    color: colors.text,
+    minHeight: 40,
+    textAlignVertical: 'top',
   },
   sectionHeader: {
     marginBottom: Theme.spacing.md,

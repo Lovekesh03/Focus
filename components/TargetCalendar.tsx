@@ -15,11 +15,12 @@ interface TargetCalendarProps {
   targets: Target[];
   onSelectDate: (date: string) => void;
   selectedDate: string;
+  onMonthChange?: (date: Date) => void;
 }
 
 const { width } = Dimensions.get('window');
 
-export function TargetCalendar({ targets, onSelectDate, selectedDate }: TargetCalendarProps) {
+export function TargetCalendar({ targets, onSelectDate, selectedDate, onMonthChange }: TargetCalendarProps) {
   const { colors } = useAppTheme();
   const styles = useStyles(colors);
   const [viewMode, setViewMode] = useState<'month' | 'year'>('month');
@@ -29,19 +30,25 @@ export function TargetCalendar({ targets, onSelectDate, selectedDate }: TargetCa
   const firstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
 
   const handlePrev = () => {
+    let nextDate;
     if (viewMode === 'month') {
-      setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+      nextDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
     } else {
-      setCurrentMonth(new Date(currentMonth.getFullYear() - 1, currentMonth.getMonth(), 1));
+      nextDate = new Date(currentMonth.getFullYear() - 1, currentMonth.getMonth(), 1);
     }
+    setCurrentMonth(nextDate);
+    onMonthChange?.(nextDate);
   };
 
   const handleNext = () => {
+    let nextDate;
     if (viewMode === 'month') {
-      setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+      nextDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
     } else {
-      setCurrentMonth(new Date(currentMonth.getFullYear() + 1, currentMonth.getMonth(), 1));
+      nextDate = new Date(currentMonth.getFullYear() + 1, currentMonth.getMonth(), 1);
     }
+    setCurrentMonth(nextDate);
+    onMonthChange?.(nextDate);
   };
 
   const renderMonthHeader = () => {
