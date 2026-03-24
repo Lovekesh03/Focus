@@ -40,5 +40,5 @@ Aura is a calm, visually appealing, and highly aesthetic personal productivity t
 - **Micro-Animations**: Uses `react-native-reanimated` (`Animated.createAnimatedComponent`) for buttery-smooth SVG completion rings, checkbox toggles, and UI interactions.
 
 added one mode for sharing the badges on the other social platfrom like linkedin ,twitter etc
-
+added one more component of calandar and time alarm 
 
