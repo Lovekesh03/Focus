@@ -35,6 +35,7 @@ interface AppState {
   badges: string[]; // unlocked badges
   themeOverride: 'light' | 'dark' | 'system';
   monthNotes: Record<string, MonthNote>; // Key: YYYY-MM
+  hasHydrated: boolean;
 
   addTask: (task: Omit<Task, 'id' | 'createdAt' | 'completed'>) => void;
   toggleTask: (id: string) => void;
@@ -62,6 +63,7 @@ export const useTaskStore = create<AppState>()(
       badges: [],
       themeOverride: 'system',
       monthNotes: {},
+      hasHydrated: false,
 
       addTask: (task) => set((state) => {
         const id = Math.random().toString(36).substring(7);
@@ -150,6 +152,11 @@ export const useTaskStore = create<AppState>()(
     {
       name: 'aura-storage',
       storage: createJSONStorage(() => AsyncStorage),
+      onRehydrateStorage: (state) => {
+        return () => {
+          useTaskStore.setState({ hasHydrated: true });
+        };
+      },
     }
   )
 );

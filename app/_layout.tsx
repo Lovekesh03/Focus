@@ -39,13 +39,19 @@ export default function RootLayout() {
 
   // On app launch, cancel any stale scheduled notifications that no longer
   // belong to a real incomplete task (e.g. tasks deleted while app was closed)
+  // On app launch and task changes, sync scheduled notifications
   const tasks = useTaskStore(state => state.tasks);
+  const hasHydrated = useTaskStore(state => state.hasHydrated);
+  
   useEffect(() => {
+    if (!hasHydrated) return;
+
     const incompletedIds = tasks
       .filter(t => !t.completed)
       .map(t => t.id);
+      
     syncNotificationsWithTasks(incompletedIds);
-  }, []);
+  }, [hasHydrated, tasks.filter(t => !t.completed).map(t => t.id).join(',')]);
 
   if (!loaded && !error) {
     return null;

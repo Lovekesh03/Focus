@@ -19,13 +19,21 @@ export default function TasksScreen() {
   const setThemeOverride = useTaskStore(state => state.setThemeOverride);
   const [newTaskTitle, setNewTaskTitle] = useState('');
 
-  const todayTasks = tasks.filter(t => {
+  // Focus list shows:
+  // 1. All uncompleted tasks (even from previous days)
+  // 2. Tasks completed today
+  const activeTasks = tasks.filter(t => {
+    if (!t.completed) return true;
     const today = new Date().toDateString();
     return new Date(t.createdAt).toDateString() === today;
+  }).sort((a, b) => {
+    // Show uncompleted first, then by priority/date
+    if (a.completed !== b.completed) return a.completed ? 1 : -1;
+    return b.createdAt - a.createdAt;
   });
 
-  const completedCount = todayTasks.filter(t => t.completed).length;
-  const progress = todayTasks.length > 0 ? completedCount / todayTasks.length : 0;
+  const completedCount = activeTasks.filter(t => t.completed).length;
+  const progress = activeTasks.length > 0 ? completedCount / activeTasks.length : 0;
 
   const toggleTheme = () => {
     const themes: Array<'light' | 'dark' | 'system'> = ['system', 'dark', 'light'];
@@ -63,7 +71,7 @@ export default function TasksScreen() {
       </View>
 
       <FlatList
-        data={todayTasks}
+        data={activeTasks}
         keyExtractor={item => item.id}
         renderItem={({ item }) => <TaskItem task={item} />}
         contentContainerStyle={styles.listContent}

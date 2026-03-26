@@ -111,13 +111,39 @@ export async function syncNotificationsWithTasks(
   try {
     const scheduled = await Notifications.getAllScheduledNotificationsAsync();
     const validIds = new Set(incompletedTaskIds);
+    let cancelledCount = 0;
+    
     for (const notif of scheduled) {
-      if (!validIds.has(notif.identifier)) {
+      // Only sync task-based notifications (which use the taskId as identifier)
+      // Exclude special identifiers like 'pomodoro-finish' and target- prefixed ones
+      if (notif.identifier !== 'pomodoro-finish' && !notif.identifier.startsWith('target-')) {
+        if (!validIds.has(notif.identifier)) {
+          await Notifications.cancelScheduledNotificationAsync(notif.identifier);
+          cancelledCount++;
+        }
+      }
+    }
+    
+    if (cancelledCount > 0) {
+      console.log(`[Notifications] Sync complete. Cancelled ${cancelledCount} stale task reminders.`);
+    }
+  } catch (error) {
+    console.error('[Notifications] Failed to sync notifications:', error);
+  }
+}
+
+/** Cancel ONLY task-specific reminders, leave targets and pomodoro intact */
+export async function cancelAllTaskReminders() {
+  try {
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    for (const notif of scheduled) {
+      if (notif.identifier !== 'pomodoro-finish' && !notif.identifier.startsWith('target-')) {
         await Notifications.cancelScheduledNotificationAsync(notif.identifier);
       }
     }
-  } catch {
-    // Silently ignore
+    console.log('[Notifications] All task reminders cancelled.');
+  } catch (error) {
+    console.error('[Notifications] Failed to cancel task reminders:', error);
   }
 }
 
