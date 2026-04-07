@@ -154,7 +154,18 @@ export const useTaskStore = create<AppState>()(
       storage: createJSONStorage(() => AsyncStorage),
       onRehydrateStorage: (state) => {
         return () => {
-          useTaskStore.setState({ hasHydrated: true });
+          // Remove tasks not from today
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const filteredTasks = (state?.tasks || []).filter(t => {
+            const tDate = new Date(t.createdAt);
+            tDate.setHours(0, 0, 0, 0);
+            return tDate.getTime() === today.getTime();
+          });
+          useTaskStore.setState({
+            hasHydrated: true,
+            tasks: filteredTasks
+          });
         };
       },
     }

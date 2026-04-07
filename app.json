@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "aura_temp",
-    "slug": "aura_temp",
+    "name": "focus",
+    "slug": "focus",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "auratemp",
+    "scheme": "focus",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {

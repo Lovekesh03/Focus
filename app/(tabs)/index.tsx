@@ -22,10 +22,13 @@ export default function TasksScreen() {
   // Focus list shows:
   // 1. All uncompleted tasks (even from previous days)
   // 2. Tasks completed today
+  // Only show tasks created today
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const activeTasks = tasks.filter(t => {
-    if (!t.completed) return true;
-    const today = new Date().toDateString();
-    return new Date(t.createdAt).toDateString() === today;
+    const tDate = new Date(t.createdAt);
+    tDate.setHours(0, 0, 0, 0);
+    return tDate.getTime() === today.getTime();
   }).sort((a, b) => {
     // Show uncompleted first, then by priority/date
     if (a.completed !== b.completed) return a.completed ? 1 : -1;
