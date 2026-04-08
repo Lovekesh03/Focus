@@ -1,8 +1,8 @@
-# Aura: Minimal Productivity App
+# FOCUS: Minimal Productivity App
 ## Walkthrough
 
 ### Overview
-Aura is a calm, visually appealing, and highly aesthetic personal productivity tool built with **React Native (Expo)**, **Firebase**, and **Zustand**. It combines a to-do list, lightweight notes, and a habit/streak tracking system without the clutter of traditional task managers.
+FOCUS is a calm, visually appealing, and highly aesthetic personal productivity tool built with **React Native (Expo)**, **Firebase**, and **Zustand**. It combines a to-do list, lightweight notes, and a habit/streak tracking system without the clutter of traditional task managers.
 
 ### Features Implemented
 1. **To-Do List & Lightweight Notes**:
