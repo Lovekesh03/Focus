@@ -52,44 +52,43 @@ export default function TasksScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-    >
-      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-        <ReflectionPrompt />
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.dateText}>
-              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-            </Text>
-            <Text style={styles.title}>Your Focus</Text>
-          </View>
-          <View style={styles.headerRight}>
-            <TouchableOpacity style={styles.themeToggle} onPress={toggleTheme}>
-              <Feather 
-                name={themeOverride === 'dark' ? 'moon' : themeOverride === 'light' ? 'sun' : 'smartphone'} 
-                size={24} 
-                color={colors.textMuted} 
-              />
-            </TouchableOpacity>
-            <ProgressRing progress={progress} size={64} strokeWidth={6} />
-          </View>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <ReflectionPrompt />
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.dateText}>
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+          </Text>
+          <Text style={styles.title}>Your Focus</Text>
         </View>
+        <View style={styles.headerRight}>
+          <TouchableOpacity style={styles.themeToggle} onPress={toggleTheme}>
+            <Feather 
+              name={themeOverride === 'dark' ? 'moon' : themeOverride === 'light' ? 'sun' : 'smartphone'} 
+              size={24} 
+              color={colors.textMuted} 
+            />
+          </TouchableOpacity>
+          <ProgressRing progress={progress} size={64} strokeWidth={6} />
+        </View>
+      </View>
 
-        <FlatList
-          data={activeTasks}
-          keyExtractor={item => item.id}
-          renderItem={({ item }) => <TaskItem task={item} />}
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No tasks for today. Add one below!</Text>
-            </View>
-          }
-        />
+      <FlatList
+        data={activeTasks}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => <TaskItem task={item} />}
+        contentContainerStyle={styles.listContent}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No tasks for today. Add one below!</Text>
+          </View>
+        }
+      />
 
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
@@ -103,8 +102,8 @@ export default function TasksScreen() {
             <Feather name="plus" size={24} color={colors.surface} />
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
