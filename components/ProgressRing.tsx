@@ -52,6 +52,10 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
     };
   });
 
+  // Dynamically scale font size and container for percentage text
+  const percentFontSize = Math.max(12, size * 0.22); // 22% of ring size, min 12
+  const percentMaxWidth = size * 0.7; // 70% of ring size
+
   return (
     <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
       <Svg width={size} height={size}>
@@ -82,7 +86,23 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
       </Svg>
       {showText && (
         <View style={[StyleSheet.absoluteFill, styles.textContainer]}>
-          <Text style={styles.percentageText}>{Math.round(progress * 100)}%</Text>
+          <Text
+            style={[
+              styles.percentageText,
+              {
+                fontSize: percentFontSize,
+                maxWidth: percentMaxWidth,
+                textAlign: 'center',
+                includeFontPadding: false,
+                textAlignVertical: 'center',
+              },
+            ]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.5}
+          >
+            {Math.round(progress * 100)}%
+          </Text>
         </View>
       )}
     </View>
